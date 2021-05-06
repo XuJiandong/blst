@@ -8,6 +8,10 @@
 typedef unsigned long long llimb_t;
 #endif
 
+#if LIMB_T_BITS==64
+typedef __int128 llimb_t;
+#endif
+
 #if defined(__clang__)
 # pragma GCC diagnostic ignored "-Wstatic-in-inline"
 #endif

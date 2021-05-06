@@ -25,10 +25,10 @@ fn assembly(file_vec: &mut Vec<PathBuf>, base_dir: &Path) {
     }
 }
 
-#[cfg(all(target_pointer_width = "64", not(target_env = "msvc")))]
-fn assembly(file_vec: &mut Vec<PathBuf>, base_dir: &Path) {
-    file_vec.push(base_dir.join("assembly.S"))
-}
+// #[cfg(all(target_pointer_width = "64", not(target_env = "msvc")))]
+// fn assembly(file_vec: &mut Vec<PathBuf>, base_dir: &Path) {
+//     file_vec.push(base_dir.join("assembly.S"))
+// }
 
 fn main() {
     /*
@@ -72,8 +72,8 @@ fn main() {
     let c_src_dir = blst_base_dir.join("src");
 
     file_vec.push(c_src_dir.join("server.c"));
-    #[cfg(all(target_pointer_width = "64"))]
-    assembly(&mut file_vec, &blst_base_dir.join("build"));
+    // #[cfg(all(target_pointer_width = "64"))]
+    // assembly(&mut file_vec, &blst_base_dir.join("build"));
 
     // Set CC environment variable to choose alternative C compiler.
     // Optimization level depends on whether or not --release is passed
@@ -96,12 +96,12 @@ fn main() {
             }
         }
         (false, false) => {
-            #[cfg(target_arch = "x86_64")]
-            if target_arch.eq("x86_64") && std::is_x86_feature_detected!("adx")
-            {
-                println!("Enabling ADX because it was detected on the host");
-                cc.define("__ADX__", None);
-            }
+            // #[cfg(target_arch = "x86_64")]
+            // if target_arch.eq("x86_64") && std::is_x86_feature_detected!("adx")
+            // {
+                // println!("Enabling ADX because it was detected on the host");
+                // cc.define("__ADX__", None);
+            // }
         }
         (true, true) => panic!(
             "Cannot compile with both `portable` and `force-adx` features"
