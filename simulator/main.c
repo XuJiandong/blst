@@ -1,9 +1,34 @@
+#define CKB_C_STDLIB_PRINTF
+#define true 1
+#define false 0
+#define bool _Bool
+
 #include <stdbool.h>
 #include <stddef.h>
 #include <stdio.h>
 
+#ifndef USE_SIM
+#include "ckb_syscalls.h"
+#endif
+
 #include "blst.h"
 //#include "server.c"
+#define CHECK2(cond, code) \
+  do {                     \
+    if (!(cond)) {         \
+      err = code;          \
+      goto exit;           \
+    }                      \
+  } while (0)
+
+#define CHECK(_code)    \
+  do {                  \
+    int code = (_code); \
+    if (code != 0) {    \
+      err = code;       \
+      goto exit;        \
+    }                   \
+  } while (0)
 
 #define COUNTOF(s) (sizeof(s) / sizeof(s[0]))
 
@@ -28,23 +53,42 @@ static void sign(uint8_t *sig, const blst_scalar sk, const uint8_t *msg,
 
 static BLST_ERROR verify(const uint8_t *sig, const uint8_t *pk,
                          const uint8_t *msg, size_t msg_len) {
+  BLST_ERROR err;
   blst_p1_affine pk_p1_affine;
   blst_p1_uncompress(&pk_p1_affine, pk);
   blst_p2_affine sig_p2_affine;
   blst_p2_uncompress(&sig_p2_affine, sig);
 
+#if 1
   // using one-shot
-  BLST_ERROR err =
+  printf("using one-shot\n");
+  err =
       blst_core_verify_pk_in_g1(&pk_p1_affine, &sig_p2_affine, true, msg,
                                 msg_len, g_dst_label, g_dst_label_len, NULL, 0);
-  if (err != 0) return err;
-
+  CHECK(err);
+#else
   // using pairing interface
-  //  blst_pairing ctx;
-  //  blst_pairing_init(&ctx, true, g_dst_label, g_dst_label_len);
-  //  blst_pairing_aggregate_pk_in_g1(&ctx, &pk_p1_affine, &sig_p2_affine, msg,
-  //  msg_len, NULL, 0); blst_pairing_commit(&ctx); err =
-  //  blst_pairing_finalverify(&ctx, NULL);
+
+  // pubkey must be checked
+  // signature will be checked internally later.
+  printf("using pairing interface\n");
+  uint8_t ctx_buff[blst_pairing_sizeof()];
+
+  bool in_g1 = blst_p1_affine_in_g1(&pk_p1_affine);
+  CHECK2(in_g1, -1);
+
+  blst_pairing *ctx = (blst_pairing *)ctx_buff;
+  blst_pairing_init(ctx, true, g_dst_label, g_dst_label_len);
+  err = blst_pairing_aggregate_pk_in_g1(ctx, &pk_p1_affine, &sig_p2_affine, msg,
+                                        msg_len, NULL, 0);
+  CHECK(err);
+  blst_pairing_commit(ctx);
+
+  bool b = blst_pairing_finalverify(ctx, NULL);
+  CHECK2(b, -1);
+#endif
+
+exit:
   return err;
 }
 
@@ -84,10 +128,9 @@ int verify_only(void) {
   } else {
     printf("Failed: %d\n", ret);
   }
-  return 0;
+  return ret;
 }
 
-#if 0
 static int sign_and_verify(void) {
   uint8_t seed[32] = {0};
 
@@ -117,6 +160,11 @@ static int sign_and_verify(void) {
   }
   return ret;
 }
-#endif
 
-int main(int argc, const char *argv[]) { return verify_only(); }
+int main(int argc, const char *argv[]) {
+#if 1
+  return verify_only();
+#else
+  return sign_and_verify();
+#endif
+}

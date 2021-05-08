@@ -3,9 +3,9 @@ CC := $(TARGET)-gcc
 LD := $(TARGET)-gcc
 OBJCOPY := $(TARGET)-objcopy
 
-CFLAGS := -O3 -DCKB_C_STDLIB_PRINTF -DCKB_DECLARATION_ONLY -fno-builtin-printf -nostdinc -nostdlib -nostartfiles \
+CFLAGS := -O3 -fPIC -fno-builtin-printf -nostdinc -nostdlib -nostartfiles \
 -fdata-sections -ffunction-sections -I bindings -I deps/ckb-c-stdlib -I deps/ckb-c-stdlib/libc \
--Wall -Werror -Wno-nonnull -Wno-nonnull-compare -Wno-unused-function
+-Wall -Werror -Wno-nonnull -Wno-nonnull-compare -Wno-unused-function -g
 
 LDFLAGS := -Wl,-static -Wl,--gc-sections
 
@@ -19,10 +19,15 @@ all-via-docker:
 	docker run --rm -v `pwd`:/code ${BUILDER_DOCKER} bash -c "cd /code && make all"
 
 target/server.o: src/server.c
-	$(CC) -c $(filter-out -DCKB_DECLARATION_ONLY, $(CFLAGS)) $(LDFLAGS) -o $@ $^
+	$(CC) -c -DCKB_DECLARATION_ONLY $(CFLAGS) $(LDFLAGS) -o $@ $^
 
 target/bls12-381-demo: simulator/main.c target/server.o
 	$(CC) $(CFLAGS) ${LDFLAGS} -o $@ $^
+	$(OBJCOPY) --only-keep-debug $@ $@.debug
+	$(OBJCOPY) --strip-debug --strip-all $@
+
+run:
+	ckb-vm-cli --bin target/bls12-381-demo
 
 fmt:
 	clang-format -i -style=Google $(wildcard simulator/main.c)
