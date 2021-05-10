@@ -1,4 +1,4 @@
-#define CKB_C_STDLIB_PRINTF
+//#define CKB_C_STDLIB_PRINTF
 #define true 1
 #define false 0
 #define bool _Bool

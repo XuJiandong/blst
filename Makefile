@@ -23,11 +23,18 @@ target/server.o: src/server.c
 
 target/bls12-381-demo: simulator/main.c target/server.o
 	$(CC) $(CFLAGS) ${LDFLAGS} -o $@ $^
-	$(OBJCOPY) --only-keep-debug $@ $@.debug
-	$(OBJCOPY) --strip-debug --strip-all $@
+#	$(OBJCOPY) --only-keep-debug $@ $@.debug
+#	$(OBJCOPY) --strip-debug --strip-all $@
 
 run:
 	ckb-vm-cli --bin target/bls12-381-demo
+
+pprof:
+	ckb-vm-pprof --bin target/bls12-381-demo | inferno-flamegraph > target/pprof.svg
+
+pprof-summary:
+	ckb-vm-pprof --bin target/bls12-381-demo | python3 simulator/folder.py > target/summary.txt
+
 
 fmt:
 	clang-format -i -style=Google $(wildcard simulator/main.c)
