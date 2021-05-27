@@ -87,7 +87,18 @@ inline void sqr_mont_##bits(vec##bits ret, const vec##bits a, \
 MUL_MONT_IMPL(256)
 #undef mul_mont_256
 #undef sqr_mont_256
+
+#if USE_MUL_MONT_384_ASM
+// will be implemented in asm
+//extern void mul_mont_384(vec384 ret, const vec384 a,
+//                  const vec384 b, const vec384 p, limb_t n0);
+inline void sqr_mont_384(vec384 ret, const vec384 a,
+                            const vec384 p, limb_t n0)
+{   mul_mont_n(ret, a, a, p, n0, NLIMBS(384));   }
+#else
 MUL_MONT_IMPL(384)
+#endif
+
 
 static void add_mod_n(limb_t ret[], const limb_t a[], const limb_t b[],
                       const limb_t p[], size_t n)
