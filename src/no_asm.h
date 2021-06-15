@@ -90,8 +90,14 @@ MUL_MONT_IMPL(256)
 
 #if USE_MUL_MONT_384_ASM
 // will be implemented in asm
-//extern void mul_mont_384(vec384 ret, const vec384 a,
-//                  const vec384 b, const vec384 p, limb_t n0);
+void blst_mul_mont_384(vec384 ret, const vec384 a,
+                  const vec384 b, const vec384 p, limb_t n0);
+
+inline void mul_mont_384(vec384 ret, const vec384 a,
+                  const vec384 b, const vec384 p, limb_t n0) {
+  return blst_mul_mont_384(ret, a, b, p, n0);
+}
+
 inline void sqr_mont_384(vec384 ret, const vec384 a,
                             const vec384 p, limb_t n0)
 {   mul_mont_n(ret, a, a, p, n0, NLIMBS(384));   }
@@ -574,6 +580,17 @@ inline limb_t sgn0_pty_mont_384x(const vec384x a, const vec384 p, limb_t n0)
     return sgn0_pty_mod_384x(tmp, p);
 }
 
+
+#ifdef USE_MUL_MONT_384_ASM
+void blst_mul_mont_384x(vec384x ret, const vec384x a, const vec384x b,
+                          const vec384 p, limb_t n0);
+
+inline void mul_mont_384x(vec384x ret, const vec384x a, const vec384x b,
+                          const vec384 p, limb_t n0) {
+  return blst_mul_mont_384x(ret, a, b, p, n0);
+}
+
+#else
 void mul_mont_384x(vec384x ret, const vec384x a, const vec384x b,
                           const vec384 p, limb_t n0)
 {
@@ -588,6 +605,8 @@ void mul_mont_384x(vec384x ret, const vec384x a, const vec384x b,
     sub_mod_n(ret[1], bb, aa, p, NLIMBS(384));
     sub_mod_n(ret[1], ret[1], cc, p, NLIMBS(384));
 }
+#endif
+
 
 /*
  * mul_mont_n without final conditional subtraction, which implies

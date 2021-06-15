@@ -1,8 +1,8 @@
 .text
 
-.globl	mul_mont_384
+.globl	blst_mul_mont_384
 .align 4
-mul_mont_384:
+blst_mul_mont_384:
 	addi	sp,sp,-112
 	ld	a5,0(a2)
 	sd	s3,80(sp)
@@ -290,6 +290,6 @@ mul_mont_384:
 	ld	s11,16(sp)
 	addi	sp,sp,112
 	jr	ra
-	.size	mul_mont_384, .-mul_mont_384
+	.size	blst_mul_mont_384, .-blst_mul_mont_384
 .LC0:
 	.dword	157587932685088877

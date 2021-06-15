@@ -41,13 +41,17 @@ target/server.o: src/server.c src/no_asm.h
 target/server-asm.o: src/server.c src/no_asm.h
 	$(CC) -c -DUSE_MUL_MONT_384_ASM -DCKB_DECLARATION_ONLY $(CFLAGS) $(LDFLAGS) -o $@ $<
 
-target/mul_mont_384.o: simulator/mul_mont_384.S
+target/blst_mul_mont_384.S.riscv.o: simulator/blst_mul_mont_384.S.riscv.S
 	$(CC) -c -DCKB_DECLARATION_ONLY $(CFLAGS) -o $@ $^
+
+target/blst_mul_mont_384x.S.riscv.o: simulator/blst_mul_mont_384x.S.riscv.S
+	$(CC) -c -DCKB_DECLARATION_ONLY $(CFLAGS) -o $@ $^
+
 
 target/bls12-381-demo: simulator/main.c target/server.o
 	$(CC) $(CFLAGS) ${LDFLAGS} -o $@ $^
 
-target/bls12-381-demo-asm: simulator/main.c target/server-asm.o target/mul_mont_384.o
+target/bls12-381-demo-asm: simulator/main.c target/server-asm.o target/blst_mul_mont_384.S.riscv.o target/blst_mul_mont_384x.S.riscv.o
 	$(CC) $(CFLAGS) ${LDFLAGS} -o $@ $^
 
 #	$(OBJCOPY) --only-keep-debug $@ $@.debug
