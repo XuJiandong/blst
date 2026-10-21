@@ -18,6 +18,17 @@ typedef unsigned long long limb_t;
 typedef unsigned __int64 limb_t;
 # define LIMB_T_BITS    64
 
+#elif defined(__BLST_RISCV_ASM__)
+# if !defined(__riscv) || __riscv_xlen != 64
+#  error "RISC-V assembly requires RV64"
+# endif
+/* The partial assembly backend uses six 64-bit limbs for Fp. */
+typedef unsigned long long limb_t;
+# define LIMB_T_BITS    64
+# ifndef __BLST_NO_ASM__
+#  define __BLST_NO_ASM__
+# endif
+
 #elif defined(__BLST_NO_ASM__) || defined(__wasm64__)
 typedef unsigned int limb_t;
 # define LIMB_T_BITS    32
