@@ -96,11 +96,22 @@ inline void sqr_mont_##bits(vec##bits ret, const vec##bits a, \
  * 256-bit subroutines can handle arbitrary modulus, even non-"sparse",
  * but we have to harmonize the naming with assembly.
  */
+#ifdef __BLST_RISCV_ASM__
+void blst_mul_mont_256(vec256 ret, const vec256 a, const vec256 b,
+                       const vec256 p, limb_t n0);
+inline void mul_mont_sparse_256(vec256 ret, const vec256 a, const vec256 b,
+                                const vec256 p, limb_t n0)
+{   blst_mul_mont_256(ret, a, b, p, n0);   }
+inline void sqr_mont_sparse_256(vec256 ret, const vec256 a,
+                                const vec256 p, limb_t n0)
+{   blst_mul_mont_256(ret, a, a, p, n0);   }
+#else
 #define mul_mont_256 mul_mont_sparse_256
 #define sqr_mont_256 sqr_mont_sparse_256
 MUL_MONT_IMPL(256)
 #undef mul_mont_256
 #undef sqr_mont_256
+#endif
 #ifdef __BLST_RISCV_ASM__
 void blst_mul_mont_384(vec384 ret, const vec384 a, const vec384 b,
                        const vec384 p, limb_t n0);
@@ -108,9 +119,11 @@ inline void mul_mont_384(vec384 ret, const vec384 a, const vec384 b,
                          const vec384 p, limb_t n0)
 {   blst_mul_mont_384(ret, a, b, p, n0);   }
 
+void blst_sqr_mont_384(vec384 ret, const vec384 a,
+                       const vec384 p, limb_t n0);
 inline void sqr_mont_384(vec384 ret, const vec384 a,
                          const vec384 p, limb_t n0)
-{   mul_mont_n(ret, a, a, p, n0, NLIMBS(384));   }
+{   blst_sqr_mont_384(ret, a, p, n0);   }
 #else
 MUL_MONT_IMPL(384)
 #endif
